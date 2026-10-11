@@ -1,4 +1,3 @@
-HTML
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,6 +6,10 @@ HTML
     <title>Aplikasi Form Pengurus DPC Laskar Prabowo 08</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Pustaka html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         .active-tab {
             background-color: #1d4ed8 !important;
@@ -14,333 +17,627 @@ HTML
             border-color: #1d4ed8 !important;
             box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.3);
         }
+
+        /* GAYA KHUSUS AGAR TIDAK TERPOTONG SAAT DI-EXPORT KE PDF */
+        .pdf-export {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+        }
+
+        .pdf-export .tab-content {
+            display: block !important;
+            margin-bottom: 1.5rem !important;
+            page-break-inside: avoid !important; /* Mencegah kartu terpotong di tengah halaman */
+            break-inside: avoid !important;
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        .pdf-export input {
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
+            font-size: 12px !important;
+            padding: 4px 8px !important;
+        }
+
+        /* Pemisah halaman antar DPC */
+        .page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-12">
 
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white shadow-lg">
-        <div class="max-w-5xl mx-auto px-4 py-6 text-center">
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide mb-1">DPC LASKAR PRABOWO 08</h1>
-            <p class="text-blue-200 text-sm md:text-base font-medium">Formulir Digital Pengisian Susunan Pengurus DPC Kabupaten/Kota</p>
+        <div class="max-w-5xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide mb-1">DPC LASKAR PRABOWO 08</h1>
+                <p class="text-blue-200 text-sm md:text-base font-medium">Formulir Digital & Manajemen Data Pengurus DPC</p>
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="openModalData()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2.5 rounded-lg shadow-md transition flex items-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-folder-open"></i> Lihat Data
+                </button>
+                <button onclick="exportAllToPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-lg shadow-md transition flex items-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-file-pdf"></i> PDF Gabungan Semua
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-4 mt-6">
         
-        <!-- Informasi Umum Header Card -->
-        <div class="bg-white rounded-xl shadow-md p-5 mb-6 border border-slate-200">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-map-marker-alt"></i> Informasi Wilayah & Masa Bakti
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">KABUPATEN / KOTA</label>
-                    <input type="text" id="info_kabupaten" placeholder="Masukkan nama Kabupaten/Kota" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">MASA BAKTI</label>
-                    <input type="text" id="info_masabakti" placeholder="Contoh: 2024 - 2029" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                </div>
-            </div>
-        </div>
-
-        <!-- NAVIGATION BUTTONS / MENU PILIHAN -->
-        <div class="mb-6">
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-1">Pilih Bagian Pengisian:</p>
-            <div class="flex flex-wrap gap-2 md:gap-3">
-                <button type="button" onclick="openTab('penasehat', this)" class="tab-btn active-tab flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
-                    <i class="fa-solid fa-user-shield"></i> Dewan Penasehat
-                </button>
-                <button type="button" onclick="openTab('pakar', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
-                    <i class="fa-solid fa-graduation-cap"></i> Dewan Pakar
-                </button>
-                <button type="button" onclick="openTab('harian', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
-                    <i class="fa-solid fa-users-gear"></i> Pengurus Harian
-                </button>
-                <button type="button" onclick="openTab('bidang', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
-                    <i class="fa-solid fa-sitemap"></i> Bidang Kepengurusan
-                </button>
-                <button type="button" onclick="openTab('formatur', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
-                    <i class="fa-solid fa-file-signature"></i> Tim Formatur
-                </button>
-            </div>
-        </div>
-
-        <!-- FORM CONTENT CONTAINERS -->
-        <form id="mainForm" onsubmit="saveData(event)">
+        <!-- AREA FORM LENGKAP -->
+        <div id="pdfArea">
             
-            <!-- SECTION 1: DEWAN PENASEHAT -->
-            <div id="section-penasehat" class="tab-content bg-white rounded-xl shadow-md p-6 border border-slate-200">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">I</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">DEWAN PENASEHAT</h3>
-                        <p class="text-xs text-slate-500">Pengisian susunan struktur Dewan Penasehat</p>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua Dewan Penasehat</label>
-                        <input type="text" id="dp_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua Dewan Penasehat</label>
-                        <input type="text" id="dp_wakil" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris Dewan Penasehat</label>
-                        <input type="text" id="dp_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 2: DEWAN PAKAR -->
-            <div id="section-pakar" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">II</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">DEWAN PAKAR</h3>
-                        <p class="text-xs text-slate-500">Pengisian susunan struktur Dewan Pakar</p>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua Dewan Pakar</label>
-                        <input type="text" id="pakar_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua Dewan Pakar</label>
-                        <input type="text" id="pakar_wakil" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris Dewan Pakar</label>
-                        <input type="text" id="pakar_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 3: PENGURUS HARIAN -->
-            <div id="section-harian" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">III</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">PENGURUS HARIAN</h3>
-                        <p class="text-xs text-slate-500">Pengisian susunan struktur Pengurus Harian</p>
-                    </div>
-                </div>
+            <!-- Informasi Umum Header Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 mb-6 border border-slate-200 tab-content">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-map-marker-alt"></i> Informasi Wilayah & Masa Bakti
+                </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua</label>
-                        <input type="text" id="ph_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">KABUPATEN / KOTA <span class="text-red-500">*</span></label>
+                        <input type="text" id="info_kabupaten" placeholder="Masukkan nama Kabupaten/Kota" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua I</label>
-                        <input type="text" id="ph_wakil1" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua II</label>
-                        <input type="text" id="ph_wakil2" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris</label>
-                        <input type="text" id="ph_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Sekretaris</label>
-                        <input type="text" id="ph_wakil_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Bendahara</label>
-                        <input type="text" id="ph_bendahara" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Bendahara</label>
-                        <input type="text" id="ph_wakil_bendahara" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">MASA BAKTI</label>
+                        <input type="text" id="info_masabakti" placeholder="Contoh: 2024 - 2029" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION 4: BIDANG KEPENGURUSAN -->
-            <div id="section-bidang" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">IV</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">BIDANG-BIDANG KEPENGURUSAN</h3>
-                        <p class="text-xs text-slate-500">Silahkan isi nama Ketua dan Anggota pada setiap bidang</p>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">I. BIDANG ORGANISASI KADERISASI DAN KEANGGOTAAN</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">II. BIDANG HUMAS DAN PENERANGAN</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">III. BIDANG SENIBUDAYA DAN OLAHRAGA</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">IV. BIDANG PENDIDIKAN DAN PENGEMBANGAN SDM</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">V. BIDANG PEMBERDAYAAN PEREMPUAN</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VI. BIDANG HUKUM DAN ADVOKASI</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VII. BIDANG PEMUDA DAN KETENAGAKERJAAN</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VIII. BIDANG EKONOMI DAN WIRA USAHA</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">IX. BIDANG KETAHANAN PANGAN</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">X. BIDANG SOSIAL & POLITIK</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">XI. BIDANG BAKTI SOSIAL & PENGABDIAN MASYARAKAT</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <input type="text" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                            <input type="text" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 5: TIM FORMATUR -->
-            <div id="section-formatur" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">V</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800">TIM FORMATUR</h3>
-                        <p class="text-xs text-slate-500">Susunan Tim Formatur Pengurus DPC Laskar Prabowo 08</p>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 1</label>
-                        <input type="text" value="Deki Julkarnaen" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 2</label>
-                        <input type="text" value="Yetro Markovis, Amd.Hut" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 3</label>
-                        <input type="text" value="Ikaldi Lukman" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons Footer -->
-            <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow border border-slate-200">
-                <p class="text-xs text-slate-500 text-center md:text-left">Pastikan data di semua bagian terisi dengan benar sebelum menyimpan.</p>
-                <div class="flex gap-3 w-full md:w-auto">
-                    <button type="submit" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Data Pengurus
+            <!-- NAVIGATION BUTTONS / MENU PILIHAN -->
+            <div class="mb-6 hide-on-pdf">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-1">Pilih Bagian Pengisian:</p>
+                <div class="flex flex-wrap gap-2 md:gap-3">
+                    <button type="button" onclick="openTab('penasehat', this)" class="tab-btn active-tab flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-user-shield"></i> Dewan Penasehat
+                    </button>
+                    <button type="button" onclick="openTab('pakar', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-graduation-cap"></i> Dewan Pakar
+                    </button>
+                    <button type="button" onclick="openTab('harian', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-users-gear"></i> Pengurus Harian
+                    </button>
+                    <button type="button" onclick="openTab('bidang', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-sitemap"></i> Bidang Kepengurusan
+                    </button>
+                    <button type="button" onclick="openTab('formatur', this)" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm transition hover:bg-slate-50 cursor-pointer">
+                        <i class="fa-solid fa-file-signature"></i> Tim Formatur
                     </button>
                 </div>
             </div>
 
-        </form>
+            <!-- FORM CONTENT CONTAINERS -->
+            <form id="mainForm" onsubmit="saveData(event)">
+                
+                <!-- SECTION 1: DEWAN PENASEHAT -->
+                <div id="section-penasehat" class="tab-content bg-white rounded-xl shadow-md p-6 border border-slate-200">
+                    <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">I</div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">DEWAN PENASEHAT</h3>
+                            <p class="text-xs text-slate-500">Pengisian susunan struktur Dewan Penasehat</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua Dewan Penasehat</label>
+                            <input type="text" id="dp_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua Dewan Penasehat</label>
+                            <input type="text" id="dp_wakil" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris Dewan Penasehat</label>
+                            <input type="text" id="dp_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: DEWAN PAKAR -->
+                <div id="section-pakar" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
+                    <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">II</div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">DEWAN PAKAR</h3>
+                            <p class="text-xs text-slate-500">Pengisian susunan struktur Dewan Pakar</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua Dewan Pakar</label>
+                            <input type="text" id="pakar_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua Dewan Pakar</label>
+                            <input type="text" id="pakar_wakil" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris Dewan Pakar</label>
+                            <input type="text" id="pakar_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: PENGURUS HARIAN -->
+                <div id="section-harian" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
+                    <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">III</div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">PENGURUS HARIAN</h3>
+                            <p class="text-xs text-slate-500">Pengisian susunan struktur Pengurus Harian</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ketua</label>
+                            <input type="text" id="ph_ketua" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua I</label>
+                            <input type="text" id="ph_wakil1" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Ketua II</label>
+                            <input type="text" id="ph_wakil2" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Sekretaris</label>
+                            <input type="text" id="ph_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Sekretaris</label>
+                            <input type="text" id="ph_wakil_sekretaris" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Bendahara</label>
+                            <input type="text" id="ph_bendahara" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Wakil Bendahara</label>
+                            <input type="text" id="ph_wakil_bendahara" placeholder="Nama lengkap & gelar" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: BIDANG KEPENGURUSAN -->
+                <div id="section-bidang" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
+                    <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">IV</div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">BIDANG-BIDANG KEPENGURUSAN</h3>
+                            <p class="text-xs text-slate-500">Silahkan isi nama Ketua dan Anggota pada setiap bidang</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">I. BIDANG ORGANISASI KADERISASI DAN KEANGGOTAAN</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b1_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b1_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b1_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">II. BIDANG HUMAS DAN PENERANGAN</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b2_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b2_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b2_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">III. BIDANG SENIBUDAYA DAN OLAHRAGA</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b3_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b3_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b3_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">IV. BIDANG PENDIDIKAN DAN PENGEMBANGAN SDM</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b4_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b4_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b4_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">V. BIDANG PEMBERDAYAAN PEREMPUAN</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b5_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b5_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b5_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VI. BIDANG HUKUM DAN ADVOKASI</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b6_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b6_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b6_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VII. BIDANG PEMUDA DAN KETENAGAKERJAAN</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b7_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b7_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b7_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">VIII. BIDANG EKONOMI DAN WIRA USAHA</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b8_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b8_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b8_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">IX. BIDANG KETAHANAN PANGAN</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b9_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b9_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b9_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">X. BIDANG SOSIAL & POLITIK</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b10_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b10_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b10_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-sm text-blue-900 mb-3 border-b border-slate-300 pb-2">XI. BIDANG BAKTI SOSIAL & PENGABDIAN MASYARAKAT</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" id="b11_ketua" placeholder="Nama Ketua Bidang" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b11_a1" placeholder="Nama Anggota 1" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                                <input type="text" id="b11_a2" placeholder="Nama Anggota 2" class="border border-slate-300 rounded px-3 py-2 text-sm bg-white">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: TIM FORMATUR -->
+                <div id="section-formatur" class="tab-content hidden bg-white rounded-xl shadow-md p-6 border border-slate-200">
+                    <div class="border-b border-slate-200 pb-4 mb-5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">V</div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800">TIM FORMATUR</h3>
+                            <p class="text-xs text-slate-500">Susunan Tim Formatur Pengurus DPC Laskar Prabowo 08</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 1</label>
+                            <input type="text" id="f_1" value="Deki Julkarnaen" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 2</label>
+                            <input type="text" id="f_2" value="Yetro Markovis, Amd.Hut" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Anggota Formatur 3</label>
+                            <input type="text" id="f_3" value="Ikaldi Lukman" class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 font-medium" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Footer -->
+                <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow border border-slate-200 hide-on-pdf">
+                    <p class="text-xs text-slate-500 text-center md:text-left">Pastikan data di semua bagian terisi dengan benar sebelum menyimpan.</p>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <button type="button" onclick="resetForm()" class="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2.5 rounded-lg transition flex items-center justify-center gap-2 text-sm cursor-pointer">
+                            <i class="fa-solid fa-arrows-rotate"></i> Form Baru
+                        </button>
+                        <button type="submit" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Data
+                        </button>
+                        <button type="button" onclick="exportToPDF()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
+                            <i class="fa-solid fa-file-pdf"></i> Simpan PDF (Form Ini)
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div id="pdfAllArea" class="hidden"></div>
+
     </main>
 
+    <!-- MODAL POPUP DATA TERSIMPAN -->
+    <div id="dataModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
+                <h3 class="font-bold flex items-center gap-2 text-base">
+                    <i class="fa-solid fa-database text-amber-400"></i> Daftar Data Pengurus Tersimpan
+                </h3>
+                <button onclick="closeModalData()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <div id="savedDataList" class="space-y-3"></div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <button onclick="exportAllToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Gabungkan & Cetak PDF Semua DPC
+                </button>
+                <button onclick="closeModalData()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Fungsi untuk mengontrol perpindahan antar tab menu
         function openTab(tabName, element) {
-            // Sembunyikan semua konten form
             const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => {
-                content.classList.add('hidden');
-            });
+            contents.forEach(content => content.classList.add('hidden'));
 
-            // Hapus status aktif dari semua tombol menu
             const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(btn => {
-                btn.classList.remove('active-tab');
+            buttons.forEach(btn => btn.classList.remove('active-tab'));
+
+            const targetContent = document.getElementById('section-' + tabName);
+            if (targetContent) targetContent.classList.remove('hidden');
+            if (element) element.classList.add('active-tab');
+        }
+
+        function saveData(event) {
+            event.preventDefault();
+            
+            const kabupaten = document.getElementById('info_kabupaten').value.trim();
+            if (!kabupaten) {
+                alert('Mohon isi nama KABUPATEN / KOTA terlebih dahulu!');
+                document.getElementById('info_kabupaten').focus();
+                return;
+            }
+
+            const formData = {};
+            const allInputs = document.querySelectorAll('#mainForm input, #info_kabupaten, #info_masabakti');
+            allInputs.forEach(input => {
+                if (input.id) formData[input.id] = input.value;
             });
 
-            // Tampilkan konten yang dipilih dan aktifkan tombolnya
-            const targetContent = document.getElementById('section-' + tabName);
-            if (targetContent) {
-                targetContent.classList.remove('hidden');
+            formData['updatedAt'] = new Date().toLocaleString('id-ID');
+
+            let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const key = kabupaten.toLowerCase();
+            allSavedData[key] = formData;
+
+            localStorage.setItem('laskar_prabowo_db', JSON.stringify(allSavedData));
+            alert(`Data Pengurus DPC untuk "${kabupaten}" BERHASIL TERSIMPAN!`);
+        }
+
+        function openModalData() {
+            renderSavedDataList();
+            document.getElementById('dataModal').classList.remove('hidden');
+            document.getElementById('dataModal').classList.add('flex');
+        }
+
+        function closeModalData() {
+            document.getElementById('dataModal').classList.add('hidden');
+            document.getElementById('dataModal').classList.remove('flex');
+        }
+
+        function renderSavedDataList() {
+            const listContainer = document.getElementById('savedDataList');
+            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const keys = Object.keys(allSavedData);
+
+            if (keys.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-folder-open text-4xl mb-2 block"></i>
+                        <p class="text-sm">Belum ada data yang tersimpan.</p>
+                    </div>`;
+                return;
             }
-            if (element) {
-                element.classList.add('active-tab');
+
+            let html = '';
+            keys.forEach(k => {
+                const item = allSavedData[k];
+                html += `
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-3 hover:bg-blue-50/50 transition">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${item.info_kabupaten}</h4>
+                            <p class="text-xs text-slate-500">Masa Bakti: ${item.info_masabakti || '-'} | Terakhir Diubah: ${item.updatedAt || '-'}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="loadData('${k}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded flex items-center gap-1 transition">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                            <button onclick="deleteData('${k}')" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold px-2.5 py-2 rounded transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+
+            listContainer.innerHTML = html;
+        }
+
+        function loadData(key) {
+            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const item = allSavedData[key];
+
+            if (!item) return;
+
+            Object.keys(item).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input) input.value = item[fieldId];
+            });
+
+            closeModalData();
+            alert(`Data Pengurus "${item.info_kabupaten}" berhasil dimuat ke dalam form.`);
+        }
+
+        function deleteData(key) {
+            if (confirm("Apakah Anda yakin ingin menghapus data tersimpan ini?")) {
+                let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+                delete allSavedData[key];
+                localStorage.setItem('laskar_prabowo_db', JSON.stringify(allSavedData));
+                renderSavedDataList();
             }
         }
 
-        // Fungsi saat tombol simpan diklik
-        function saveData(event) {
-            event.preventDefault();
-            const kabupaten = document.getElementById('info_kabupaten').value || 'Kabupaten/Kota';
-            alert('Data Pengurus DPC Laskar Prabowo 08 untuk ' + kabupaten + ' berhasil disimpan!');
+        function resetForm() {
+            if (confirm("Kosongkan seluruh form untuk membuat data pengurus baru?")) {
+                document.getElementById('mainForm').reset();
+                document.getElementById('info_kabupaten').value = '';
+                document.getElementById('info_masabakti').value = '';
+            }
+        }
+
+        function prepareInputsForPDF(container) {
+            const inputs = container.querySelectorAll('input');
+            inputs.forEach(input => input.setAttribute('value', input.value));
+        }
+
+        // EXPORT PDF FORM TUNGGAL (DIPERBAIKI AGAR TIDAK TERPOTONG)
+        function exportToPDF() {
+            const kabupaten = document.getElementById('info_kabupaten').value.trim() || 'DPC';
+            const element = document.getElementById('pdfArea');
+
+            prepareInputsForPDF(element);
+            element.classList.add('pdf-export');
+
+            const hiddenElements = element.querySelectorAll('.hide-on-pdf');
+            hiddenElements.forEach(el => el.style.display = 'none');
+
+            // Buka semua tab sementara
+            const tabs = element.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('hidden'));
+
+            // Opsi PDF Presisi Kertas A4
+            const opt = {
+                margin:       [8, 8, 8, 8],
+                filename:     `Data_Pengurus_${kabupaten.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('pdf-export');
+                hiddenElements.forEach(el => el.style.display = '');
+                openTab('penasehat', document.querySelector('.tab-btn'));
+            }).catch(err => {
+                console.error(err);
+                element.classList.remove('pdf-export');
+                hiddenElements.forEach(el => el.style.display = '');
+                alert('Terjadi kesalahan saat membuat file PDF.');
+            });
+        }
+
+        // EXPORT ALL PDF GABUNGAN (DIPERBAIKI AGAR TIDAK TERPOTONG)
+        function exportAllToPDF() {
+            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const keys = Object.keys(allSavedData);
+
+            if (keys.length === 0) {
+                alert('Belum ada data tersimpan di browser!');
+                return;
+            }
+
+            closeModalData();
+
+            const pdfContainer = document.getElementById('pdfAllArea');
+            pdfContainer.innerHTML = '';
+
+            let fullHTML = `
+                <div class="bg-gradient-to-b from-blue-900 via-indigo-900 to-slate-900 text-white min-h-[950px] flex flex-col justify-between p-12 text-center rounded-xl shadow">
+                    <div>
+                        <h1 class="text-4xl font-black tracking-widest uppercase mb-4 border-b-2 border-blue-400 pb-4">REKAPITULASI DATA PENGURUS</h1>
+                        <h2 class="text-2xl font-bold text-blue-200">LASKAR PRABOWO 08</h2>
+                        <p class="text-sm text-slate-300 mt-2">Kumpulan Susunan Pengurus DPC Kabupaten / Kota</p>
+                    </div>
+                    <div class="my-auto py-12">
+                        <div class="inline-block bg-white/10 backdrop-blur-md px-8 py-6 rounded-2xl border border-white/20">
+                            <p class="text-lg font-semibold text-amber-400">TOTAL DATA DPC TERSIMPAN</p>
+                            <p class="text-5xl font-extrabold text-white mt-2">${keys.length} WILAYAH</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400 border-t border-slate-700 pt-4">
+                        Dicetak Otomatis pada: ${new Date().toLocaleString('id-ID')}
+                    </div>
+                </div>`;
+
+            keys.forEach((key) => {
+                let formCloneHTML = document.getElementById('pdfArea').innerHTML;
+                fullHTML += `<div class="page-break"></div><div class="pdf-export p-4">` + formCloneHTML + `</div>`;
+            });
+
+            pdfContainer.innerHTML = fullHTML;
+
+            const hiddenBtns = pdfContainer.querySelectorAll('.hide-on-pdf');
+            hiddenBtns.forEach(el => el.style.display = 'none');
+
+            const allTabs = pdfContainer.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('hidden'));
+
+            const renderedForms = pdfContainer.querySelectorAll('form');
+            keys.forEach((key, index) => {
+                const item = allSavedData[key];
+                const formGroup = renderedForms[index];
+
+                const kabInput = pdfContainer.querySelectorAll('#info_kabupaten')[index];
+                const mbInput = pdfContainer.querySelectorAll('#info_masabakti')[index];
+                if (kabInput) kabInput.value = item.info_kabupaten || '';
+                if (mbInput) mbInput.value = item.info_masabakti || '';
+
+                Object.keys(item).forEach(fieldId => {
+                    const fieldInput = formGroup.querySelector(`#${fieldId}`);
+                    if (fieldInput) fieldInput.value = item[fieldId];
+                });
+            });
+
+            prepareInputsForPDF(pdfContainer);
+
+            const opt = {
+                margin:       [8, 8, 8, 8],
+                filename:     `Laporan_Gabungan_DPC_LaskarPrabowo08_${keys.length}_Wilayah.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            pdfContainer.classList.remove('hidden');
+
+            html2pdf().set(opt).from(pdfContainer).save().then(() => {
+                pdfContainer.classList.add('hidden');
+                pdfContainer.innerHTML = '';
+            }).catch(err => {
+                console.error(err);
+                pdfContainer.classList.add('hidden');
+                alert('Terjadi kesalahan saat membuat file PDF Gabungan.');
+            });
         }
     </script>
 </body>

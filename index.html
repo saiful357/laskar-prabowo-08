@@ -30,7 +30,7 @@
         .pdf-export .tab-content {
             display: block !important;
             margin-bottom: 1.5rem !important;
-            page-break-inside: avoid !important; /* Mencegah kartu terpotong di tengah halaman */
+            page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
             border: 1px solid #cbd5e1 !important;
@@ -44,7 +44,6 @@
             padding: 4px 8px !important;
         }
 
-        /* Pemisah halaman antar DPC */
         .page-break {
             page-break-before: always !important;
             break-before: page !important;
@@ -365,8 +364,6 @@
             </form>
         </div>
 
-        <div id="pdfAllArea" class="hidden"></div>
-
     </main>
 
     <!-- MODAL POPUP DATA TERSIMPAN -->
@@ -376,7 +373,7 @@
                 <h3 class="font-bold flex items-center gap-2 text-base">
                     <i class="fa-solid fa-database text-amber-400"></i> Daftar Data Pengurus Tersimpan
                 </h3>
-                <button onclick="closeModalData()" class="text-slate-400 hover:text-white transition">
+                <button onclick="closeModalData()" class="text-slate-400 hover:text-white transition cursor-pointer">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -384,10 +381,10 @@
                 <div id="savedDataList" class="space-y-3"></div>
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                <button onclick="exportAllToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                <button onclick="exportAllToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-file-pdf"></i> Gabungkan & Cetak PDF Semua DPC
                 </button>
-                <button onclick="closeModalData()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                <button onclick="closeModalData()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer">
                     Tutup
                 </button>
             </div>
@@ -440,204 +437,210 @@
         }
 
         function closeModalData() {
-            document.getElementById('dataModal').classList.add('hidden');
             document.getElementById('dataModal').classList.remove('flex');
+            document.getElementById('dataModal').classList.add('hidden');
         }
 
         function renderSavedDataList() {
-            const listContainer = document.getElementById('savedDataList');
-            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const container = document.getElementById('savedDataList');
+            container.innerHTML = '';
+
+            let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
             const keys = Object.keys(allSavedData);
 
             if (keys.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="text-center py-8 text-slate-400">
-                        <i class="fa-solid fa-folder-open text-4xl mb-2 block"></i>
-                        <p class="text-sm">Belum ada data yang tersimpan.</p>
-                    </div>`;
+                container.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">Belum ada data DPC yang tersimpan.</p>';
                 return;
             }
 
-            let html = '';
-            keys.forEach(k => {
-                const item = allSavedData[k];
-                html += `
-                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-3 hover:bg-blue-50/50 transition">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${item.info_kabupaten}</h4>
-                            <p class="text-xs text-slate-500">Masa Bakti: ${item.info_masabakti || '-'} | Terakhir Diubah: ${item.updatedAt || '-'}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="loadData('${k}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded flex items-center gap-1 transition">
-                                <i class="fa-solid fa-pen-to-square"></i> Edit
-                            </button>
-                            <button onclick="deleteData('${k}')" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold px-2.5 py-2 rounded transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>`;
+            keys.forEach(key => {
+                const data = allSavedData[key];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-slate-50 border border-slate-200 p-3 rounded-lg flex justify-between items-center gap-2';
+                itemDiv.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800 uppercase">${data.info_kabupaten || key}</h4>
+                        <p class="text-xs text-slate-500">Masa Bakti: ${data.info_masabakti || '-'} | Diperbarui: ${data.updatedAt || '-'}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="loadData('${key}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer">Muat</button>
+                        <button type="button" onclick="deleteData('${key}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
             });
-
-            listContainer.innerHTML = html;
         }
 
         function loadData(key) {
-            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
-            const item = allSavedData[key];
+            let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            const data = allSavedData[key];
+            if (!data) return;
 
-            if (!item) return;
-
-            Object.keys(item).forEach(fieldId => {
-                const input = document.getElementById(fieldId);
-                if (input) input.value = item[fieldId];
-            });
+            for (const id in data) {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = data[id];
+                }
+            }
 
             closeModalData();
-            alert(`Data Pengurus "${item.info_kabupaten}" berhasil dimuat ke dalam form.`);
+            alert(`Data DPC ${data.info_kabupaten || key} berhasil dimuat ke form!`);
         }
 
         function deleteData(key) {
-            if (confirm("Apakah Anda yakin ingin menghapus data tersimpan ini?")) {
-                let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
-                delete allSavedData[key];
-                localStorage.setItem('laskar_prabowo_db', JSON.stringify(allSavedData));
-                renderSavedDataList();
-            }
+            if (!confirm('Apakah Anda yakin ingin menghapus data DPC ini?')) return;
+            let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+            delete allSavedData[key];
+            localStorage.setItem('laskar_prabowo_db', JSON.stringify(allSavedData));
+            renderSavedDataList();
         }
 
         function resetForm() {
-            if (confirm("Kosongkan seluruh form untuk membuat data pengurus baru?")) {
-                document.getElementById('mainForm').reset();
-                document.getElementById('info_kabupaten').value = '';
-                document.getElementById('info_masabakti').value = '';
-            }
+            if (!confirm('Buat form baru? Pastikan data saat ini sudah tersimpan.')) return;
+            document.getElementById('mainForm').reset();
+            document.getElementById('info_kabupaten').value = '';
+            document.getElementById('info_masabakti').value = '';
         }
 
-        function prepareInputsForPDF(container) {
-            const inputs = container.querySelectorAll('input');
-            inputs.forEach(input => input.setAttribute('value', input.value));
-        }
-
-        // EXPORT PDF FORM TUNGGAL (DIPERBAIKI AGAR TIDAK TERPOTONG)
         function exportToPDF() {
-            const kabupaten = document.getElementById('info_kabupaten').value.trim() || 'DPC';
             const element = document.getElementById('pdfArea');
+            // Tampilkan semua tab agar ikut tercetak di PDF
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => t.classList.remove('hidden'));
 
-            prepareInputsForPDF(element);
             element.classList.add('pdf-export');
-
-            const hiddenElements = element.querySelectorAll('.hide-on-pdf');
-            hiddenElements.forEach(el => el.style.display = 'none');
-
-            // Buka semua tab sementara
-            const tabs = element.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.remove('hidden'));
-
-            // Opsi PDF Presisi Kertas A4
             const opt = {
-                margin:       [8, 8, 8, 8],
-                filename:     `Data_Pengurus_${kabupaten.replace(/\s+/g, '_')}.pdf`,
+                margin:       10,
+                filename:     'Laporan_DPC_LaskarPrabowo08.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
+            html2pdf().from(element).set(opt).save().then(() => {
                 element.classList.remove('pdf-export');
-                hiddenElements.forEach(el => el.style.display = '');
+                // Kembalikan ke tab pertama saja setelah export selesai
                 openTab('penasehat', document.querySelector('.tab-btn'));
-            }).catch(err => {
-                console.error(err);
-                element.classList.remove('pdf-export');
-                hiddenElements.forEach(el => el.style.display = '');
-                alert('Terjadi kesalahan saat membuat file PDF.');
             });
         }
 
-        // EXPORT ALL PDF GABUNGAN (DIPERBAIKI AGAR TIDAK TERPOTONG)
-        function exportAllToPDF() {
-            const allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
+function exportAllToPDF() {
+            let allSavedData = JSON.parse(localStorage.getItem('laskar_prabowo_db')) || {};
             const keys = Object.keys(allSavedData);
 
             if (keys.length === 0) {
-                alert('Belum ada data tersimpan di browser!');
+                alert('Belum ada data DPC yang tersimpan di memori! Silakan simpan minimal satu data Kabupaten/Kota terlebih dahulu.');
                 return;
             }
 
-            closeModalData();
+            const containerAll = document.createElement('div');
+            containerAll.style.background = '#ffffff';
+            containerAll.style.padding = '20px';
+            containerAll.style.fontFamily = 'Arial, sans-serif';
 
-            const pdfContainer = document.getElementById('pdfAllArea');
-            pdfContainer.innerHTML = '';
-
-            let fullHTML = `
-                <div class="bg-gradient-to-b from-blue-900 via-indigo-900 to-slate-900 text-white min-h-[950px] flex flex-col justify-between p-12 text-center rounded-xl shadow">
-                    <div>
-                        <h1 class="text-4xl font-black tracking-widest uppercase mb-4 border-b-2 border-blue-400 pb-4">REKAPITULASI DATA PENGURUS</h1>
-                        <h2 class="text-2xl font-bold text-blue-200">LASKAR PRABOWO 08</h2>
-                        <p class="text-sm text-slate-300 mt-2">Kumpulan Susunan Pengurus DPC Kabupaten / Kota</p>
-                    </div>
-                    <div class="my-auto py-12">
-                        <div class="inline-block bg-white/10 backdrop-blur-md px-8 py-6 rounded-2xl border border-white/20">
-                            <p class="text-lg font-semibold text-amber-400">TOTAL DATA DPC TERSIMPAN</p>
-                            <p class="text-5xl font-extrabold text-white mt-2">${keys.length} WILAYAH</p>
-                        </div>
-                    </div>
-                    <div class="text-xs text-slate-400 border-t border-slate-700 pt-4">
-                        Dicetak Otomatis pada: ${new Date().toLocaleString('id-ID')}
-                    </div>
-                </div>`;
-
-            keys.forEach((key) => {
-                let formCloneHTML = document.getElementById('pdfArea').innerHTML;
-                fullHTML += `<div class="page-break"></div><div class="pdf-export p-4">` + formCloneHTML + `</div>`;
-            });
-
-            pdfContainer.innerHTML = fullHTML;
-
-            const hiddenBtns = pdfContainer.querySelectorAll('.hide-on-pdf');
-            hiddenBtns.forEach(el => el.style.display = 'none');
-
-            const allTabs = pdfContainer.querySelectorAll('.tab-content');
-            allTabs.forEach(tab => tab.classList.remove('hidden'));
-
-            const renderedForms = pdfContainer.querySelectorAll('form');
             keys.forEach((key, index) => {
-                const item = allSavedData[key];
-                const formGroup = renderedForms[index];
+                const data = allSavedData[key];
+                
+                if (index > 0) {
+                    const pageBreak = document.createElement('div');
+                    pageBreak.className = 'page-break';
+                    containerAll.appendChild(pageBreak);
+                }
 
-                const kabInput = pdfContainer.querySelectorAll('#info_kabupaten')[index];
-                const mbInput = pdfContainer.querySelectorAll('#info_masabakti')[index];
-                if (kabInput) kabInput.value = item.info_kabupaten || '';
-                if (mbInput) mbInput.value = item.info_masabakti || '';
+                const sectionWrapper = document.createElement('div');
+                sectionWrapper.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px;">
+                        <h2 style="font-size: 16px; font-weight: bold; color: #1e3a8a; margin: 0;">LAPORAN PENGURUS DPC LASKAR PRABOWO 08</h2>
+                        <h3 style="font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 5px 0;">KABUPATEN / KOTA: ${data.info_kabupaten || '-'}</h3>
+                        <p style="font-size: 11px; color: #555; margin: 0;">Masa Bakti: ${data.info_masabakti || '-'}</p>
+                    </div>
 
-                Object.keys(item).forEach(fieldId => {
-                    const fieldInput = formGroup.querySelector(`#${fieldId}`);
-                    if (fieldInput) fieldInput.value = item[fieldId];
-                });
+                    <!-- Dewan Penasehat -->
+                    <div style="margin-bottom: 12px; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 4px;">I. DEWAN PENASEHAT</h4>
+                        <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                            <tr><td style="width: 35%; padding: 2px 0;">Ketua</td><td style="width: 5%;">:</td><td><b>${data.dp_ketua || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Ketua</td><td>:</td><td><b>${data.dp_wakil || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Sekretaris</td><td>:</td><td><b>${data.dp_sekretaris || '-'}</b></td></tr>
+                        </table>
+                    </div>
+
+                    <!-- Dewan Pakar -->
+                    <div style="margin-bottom: 12px; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 4px;">II. DEWAN PAKAR</h4>
+                        <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                            <tr><td style="width: 35%; padding: 2px 0;">Ketua</td><td style="width: 5%;">:</td><td><b>${data.pakar_ketua || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Ketua</td><td>:</td><td><b>${data.pakar_wakil || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Sekretaris</td><td>:</td><td><b>${data.pakar_sekretaris || '-'}</b></td></tr>
+                        </table>
+                    </div>
+
+                    <!-- Pengurus Harian -->
+                    <div style="margin-bottom: 12px; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 4px;">III. PENGURUS HARIAN</h4>
+                        <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                            <tr><td style="width: 35%; padding: 2px 0;">Ketua</td><td style="width: 5%;">:</td><td><b>${data.ph_ketua || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Ketua I</td><td>:</td><td><b>${data.ph_wakil1 || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Ketua II</td><td>:</td><td><b>${data.ph_wakil2 || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Sekretaris</td><td>:</td><td><b>${data.ph_sekretaris || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Sekretaris</td><td>:</td><td><b>${data.ph_wakil_sekretaris || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Bendahara</td><td>:</td><td><b>${data.ph_bendahara || '-'}</b></td></tr>
+                            <tr><td style="padding: 2px 0;">Wakil Bendahara</td><td>:</td><td><b>${data.ph_wakil_bendahara || '-'}</b></td></tr>
+                        </table>
+                    </div>
+
+                    <!-- BIDANG-BIDANG (BERKOTAK / TABEL) -->
+                    <div style="margin-bottom: 12px; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 6px;">IV. BIDANG-BIDANG KEPENGURUSAN</h4>
+                        <table style="width: 100%; font-size: 10px; border-collapse: collapse; border: 1px solid #94a3b8;">
+                            <thead>
+                                <tr style="background-color: #f1f5f9; text-align: left;">
+                                    <th style="border: 1px solid #94a3b8; padding: 4px; width: 35%;">Nama Bidang</th>
+                                    <th style="border: 1px solid #94a3b8; padding: 4px; width: 25%;">Ketua</th>
+                                    <th style="border: 1px solid #94a3b8; padding: 4px; width: 20%;">Anggota 1</th>
+                                    <th style="border: 1px solid #94a3b8; padding: 4px; width: 20%;">Anggota 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">1. Organisasi Kaderisasi</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b1_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b1_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b1_a2 || '-'}</td></tr>
+                                <tr style="background-color: #f8fafc;"><td style="border: 1px solid #94a3b8; padding: 3px;">2. Humas & Penerangan</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b2_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b2_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b2_a2 || '-'}</td></tr>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">3. Seni Budaya & Olahraga</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b3_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b3_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b3_a2 || '-'}</td></tr>
+                                <tr style="background-color: #f8fafc;"><td style="border: 1px solid #94a3b8; padding: 3px;">4. Pendidikan & SDM</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b4_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b4_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b4_a2 || '-'}</td></tr>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">5. Pemberdayaan Perempuan</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b5_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b5_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b5_a2 || '-'}</td></tr>
+                                <tr style="background-color: #f8fafc;"><td style="border: 1px solid #94a3b8; padding: 3px;">6. Hukum & Advokasi</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b6_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b6_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b6_a2 || '-'}</td></tr>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">7. Pemuda & Ketenagakerjaan</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b7_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b7_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b7_a2 || '-'}</td></tr>
+                                <tr style="background-color: #f8fafc;"><td style="border: 1px solid #94a3b8; padding: 3px;">8. Ekonomi & Wira Usaha</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b8_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b8_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b8_a2 || '-'}</td></tr>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">9. Ketahanan Pangan</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b9_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b9_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b9_a2 || '-'}</td></tr>
+                                <tr style="background-color: #f8fafc;"><td style="border: 1px solid #94a3b8; padding: 3px;">10. Sosial & Politik</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b10_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b10_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b10_a2 || '-'}</td></tr>
+                                <tr><td style="border: 1px solid #94a3b8; padding: 3px;">11. Bakti Sosial & Pengabdian</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b11_ketua || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b11_a1 || '-'}</td><td style="border: 1px solid #94a3b8; padding: 3px;">${data.b11_a2 || '-'}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tim Formatur -->
+                    <div style="border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 4px;">V. TIM FORMATUR</h4>
+                        <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                            <tr><td style="width: 35%; padding: 2px 0;">1. Anggota Formatur</td><td style="width: 5%;">:</td><td><b>Deki Julkarnaen</b></td></tr>
+                            <tr><td style="padding: 2px 0;">2. Anggota Formatur</td><td>:</td><td><b>Yetro Markovis, Amd.Hut</b></td></tr>
+                            <tr><td style="padding: 2px 0;">3. Anggota Formatur</td><td>:</td><td><b>Ikaldi Lukman</b></td></tr>
+                        </table>
+                    </div>
+                `;
+                containerAll.appendChild(sectionWrapper);
             });
 
-            prepareInputsForPDF(pdfContainer);
-
+            closeModalData();
+            
             const opt = {
-                margin:       [8, 8, 8, 8],
-                filename:     `Laporan_Gabungan_DPC_LaskarPrabowo08_${keys.length}_Wilayah.pdf`,
+                margin:       10,
+                filename:     'Laporan_Gabungan_Semua_DPC_LaskarPrabowo08.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            pdfContainer.classList.remove('hidden');
-
-            html2pdf().set(opt).from(pdfContainer).save().then(() => {
-                pdfContainer.classList.add('hidden');
-                pdfContainer.innerHTML = '';
-            }).catch(err => {
-                console.error(err);
-                pdfContainer.classList.add('hidden');
-                alert('Terjadi kesalahan saat membuat file PDF Gabungan.');
-            });
+            html2pdf().from(containerAll).set(opt).save();
         }
     </script>
 </body>
